@@ -85,3 +85,33 @@ Tip: generate scene 1, then upload that image back into Gemini with "use the sam
 **Thumbnail text (add in Canva):** "30 DAYS OF SNOW" + small "DAY 10 IS INSANE".
 
 **Title:** What If It Snowed for 30 Days Straight?
+
+---
+
+## 7-MIN VERSION: extra scenes (script_7min.txt)
+
+**Recurring characters — add these descriptions whenever they appear:**
+- **Biscuit:** a fluffy golden retriever with a red collar.
+- **Captain Dave:** a chubby cheerful bearded neighbor in a red plaid hunting jacket and aviator goggles.
+- **Mrs. Patterson:** a sweet 84-year-old lady with white curly hair, round glasses and a purple knitted shawl.
+
+| # | Day | Scene (add after STYLE) |
+|---|-----|-------------------------|
+| 31 | Day 0 | The character on his couch with Biscuit the golden retriever, looking at a phone weather app showing "1 inch", calm cozy living room. |
+| 32 | Day 1 | Funny "snowman war": two families on opposite sides of a snowy street building giant competing snowmen, one with a top hat, one even bigger, kids cheering, the character with hot chocolate on his porch. |
+| 33 | Day 2 | The character holding his back in pain next to a freshly shoveled path that is already covered again by snow, comic expression. |
+| 34 | Day 3 | Comic scene in an empty grocery store: two adults tugging on the last bag of marshmallows, the character watching shocked. |
+| 35 | Day 4 | Backyard deep snow, only the wagging tail of Biscuit visible sticking out of a big snowdrift, the character laughing. |
+| 36 | Day 4 | Biscuit happily running through a narrow snow hallway dug in the backyard, walls of snow higher than the dog. |
+| 37 | Day 5 | The character playing cards by candlelight in a dark living room wrapped in blankets, Biscuit sleeping by the fireplace. |
+| 38 | Day 7 | Night bedroom, the character lying awake in bed staring nervously at the ceiling, small cracks and dust falling, moonlight. |
+| 39 | Day 8 | Captain Dave proudly riding an old red snowmobile over deep snow, delivering pizza boxes, goggles on, snow spraying. |
+| 40 | Day 8 | Captain Dave handing a medicine bag to Mrs. Patterson at her upstairs window, warm smiles. |
+| 41 | Day 12 | A giant snow fort built by kids with rooms, a slide and a flag, a small news drone flying above it. |
+| 42 | Day 12 | A TV news screen showing the snow fort from above with an empty banner at the bottom (no text), the character watching on a battery radio/TV. |
+| 43 | Day 17 | A huge moose walking calmly down a snow-buried street right past the character's upstairs window, the character staring with his mouth open, Biscuit barking. |
+| 44 | Day 17 | Deer wandering between half-buried houses at dusk, a squirrel peeking out of an attic vent. |
+| 45 | Day 30 | Captain Dave doing a victory lap on his snowmobile in the sunshine, neighbors cheering on rooftops, Biscuit running in circles. |
+| 46 | Day 30 | Mrs. Patterson handing out a big plate of cookies to neighbors in a muddy flooded street, warm spring light. |
+
+Total with the first list: 46 images (you don't need all — 35-40 is enough).
