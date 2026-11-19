@@ -1,7 +1,7 @@
 # What If It Snowed for 30 Days Straight?
-Channel: Day Zero Tales (US) • Format: Day 0 → Day 30 • Target: ~6 min
+Channel: Day Zero Tales (US) • Format: Day 0 → Day 30 • Target: ~5 min
 
-## SCRIPT (narration, ~930 words)
+## SCRIPT (narration, ~720 words, ~4.5-5 min)
 
 It starts on a Monday morning. A few soft flakes drift past your window. Thirty days later, you'll be climbing out of your second-floor window... because the snow is taller than your front door.
 
