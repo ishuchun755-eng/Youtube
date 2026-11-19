@@ -34,7 +34,9 @@ def wtime(i, word, k=0):
     return min(near, key=lambda p: abs(p - t)) if near else t
 
 # ------------------------------------------------------------ assets
-PH = {n: Image.open(f"ph/{n}.png").convert("RGB") for n in ("roll1", "roll2", "roll3", "burger", "crepes", "roll4")}
+PH = {n: Image.open(f"ph/{n}.png").convert("RGB") for n in ("roll1", "roll2", "roll3", "burger", "crepes", "roll4", "hotdog", "pizza", "lavash", "shaurma")}
+LAVCUT = Image.open("ph/lavash_cut.png").convert("RGBA")
+FRICUT = Image.open("ph/fries_cut.png").convert("RGBA")
 LOGO = Image.open("img/logo.jpg").convert("RGB")
 def logo_rgba(size):
     im = LOGO.resize((size, size), Image.LANCZOS)
@@ -302,9 +304,30 @@ def shot_list(t, lt):
         nxt = items[k + 1][0] if k + 1 < len(items) else I_SHIR
         if ts <= t < nxt:
             l2 = t - ts
-            fr = bg_red(t) if k % 2 == 0 else bg_dark(t)
             sc = back(clamp(l2 / 0.25), 2.0)
-            put(fr, icon(ic, 760), W / 2, 860 + 10 * math.sin(t * 6), sc, 6 * math.sin(t * 5 + k))
+            if ic == "pizza":
+                fr = cover("pizza", 0.5, 0.42, 1.05 + 0.12 * l2)
+                fr = punch(fr, l2, 0.22, 0.2)
+                title(fr, nm, W / 2, 1560, 150, l2 - 0.03, WHT, RED, k + 4)
+                return fr
+            fr = bg_red(t) if k % 2 == 0 else bg_dark(t)
+            if ic in ("lavash", "fries"):
+                src, hh = (LAVCUT, 1150) if ic == "lavash" else (FRICUT, 1000)
+                lv = src.resize((int(src.width * hh / src.height), hh), Image.LANCZOS)
+                shd = Image.new("RGBA", (lv.width + 80, lv.height + 80), (0, 0, 0, 0))
+                shd.paste((0, 0, 0, 150), (40, 55), lv.split()[3]); shd = shd.filter(ImageFilter.GaussianBlur(18))
+                rr = (-8 if ic == "lavash" else 4) + 3 * math.sin(t * 4)
+                put(fr, shd, W / 2 + 20, 830, sc, rr)
+                put(fr, lv, W / 2, 800, sc, rr)
+                steam(fr, t, 380, 700, 380, 11, 60)
+            elif ic == "shaurma":
+                put(fr, card("shaurma", 1000, 680, 0.5, 0.5, z=1.0 + 0.05 * l2), W / 2, 840, sc, -2 * math.sin(t * 4))
+                steam(fr, t, 260, 820, 640, 13, 40)
+            elif ic == "hotdog":
+                put(fr, card("hotdog", 1000, 700, 0.5, 0.55, z=1.0 + 0.05 * l2), W / 2, 840, sc, 2 * math.sin(t * 4))
+                steam(fr, t, 260, 820, 640, 12, 40)
+            else:
+                put(fr, icon(ic, 760), W / 2, 860 + 10 * math.sin(t * 6), sc, 6 * math.sin(t * 5 + k))
             title(fr, nm, W / 2, 1500, 150, l2 - 0.03, WHT, BLK if k % 2 == 0 else RED, k + 4)
             return fr
     if t < I_ALL:
@@ -315,7 +338,7 @@ def shot_list(t, lt):
         return fr
     l2 = t - I_ALL
     fr = bg_dark(t)
-    tiles = [("ph", "roll1"), ("ic", "pizza"), ("ph", "burger"), ("ic", "lavash"), ("logo", None), ("ic", "hotdog"), ("ph", "roll2"), ("ic", "fries"), ("ph", "crepes")]
+    tiles = [("ph", "roll1"), ("ph", "pizza"), ("ph", "burger"), ("ph", "lavash"), ("logo", None), ("ph", "hotdog"), ("ph", "roll2"), ("ph", "shaurma"), ("ph", "crepes")]
     for j, (kind, nm) in enumerate(tiles):
         cx = 200 + (j % 3) * 340; cy = 360 + (j // 3) * 400
         q = back(clamp((l2 - j * 0.05) / 0.3), 1.8)
@@ -362,7 +385,7 @@ def shot_benefits(t, lt):
     return punch(fr, l2)
 
 def shot_try(t, lt):
-    seq = ["roll1", "burger", "roll2", "crepes", "roll3", "roll4"]
+    seq = ["pizza", "roll1", "hotdog", "burger", "roll2", "crepes"]
     if t < I_TAT2:
         k = int(lt / 0.3) % len(seq)
         l2 = lt % 0.3
@@ -401,7 +424,7 @@ def shot_call(t, lt):
 
 def shot_end(t, lt):
     fr = bg_dark(t)
-    strip = ["roll1", "burger", "roll2", "crepes", "roll3", "roll4"]
+    strip = ["roll1", "pizza", "burger", "hotdog", "shaurma", "crepes"]
     off = (t * 140) % 360
     for j in range(8):
         x = -180 + j * 360 - off
