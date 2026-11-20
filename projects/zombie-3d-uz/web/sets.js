@@ -147,6 +147,36 @@ export const CAST = {
   staff: makePerson({ top: 0xf4f4f4, vest: 0xd83a2a, hair: 0x1a1210, skin: 0xd9a47c, pants: 0x2a2a34 }),
   jacket: makePerson({ top: 0x1a1a22, coat: false, hair: 0x101010, skin: 0xe0b48c, pants: 0x18181e }),
 };
+CAST.zteen = makePerson({ zombie: true, top: 0x3a9a4a, hair: 0x1a1210, skin: 0x7a9a5a, pants: 0x222a3a, scale: 0.68, blood: true });
+export function makeBat() { const b = new THREE.Group(); mesh(G.cyl(0.035, 0.06, 0.9, 10), 0xb8bcc8, 0, -0.45, 0, b, { th: 0.01 }); return b; }
+export function makePhone() {
+  const g = new THREE.Group();
+  mesh(G.rbox(0.36, 0.72, 0.05, 0.02), 0x15151c, 0, 0, 0, g, { th: 0.008 });
+  const tex = canvasTex(360, 720, () => {});
+  const scr = new THREE.Mesh(G.plane(0.33, 0.67), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false })); scr.position.z = 0.027; g.add(scr);
+  g.userData = { tex, state: '' };
+  g.userData.show = (state, a = {}) => {
+    const key = state + JSON.stringify(a); if (g.userData.state === key) return; g.userData.state = key;
+    redraw(tex, (c, w, h) => {
+      const gr = c.createLinearGradient(0, 0, 0, h);
+      if (state === 'call') { gr.addColorStop(0, '#1d3a2a'); gr.addColorStop(1, '#05140c'); } else { gr.addColorStop(0, '#2a3a9a'); gr.addColorStop(1, '#5b1f8a'); }
+      c.fillStyle = gr; c.fillRect(0, 0, w, h); c.textAlign = 'center'; c.fillStyle = '#fff';
+      if (state === 'nosig') {
+        c.font = `90px ${FONT}`; c.fillText('12:47', w / 2, 230);
+        c.fillStyle = 'rgba(0,0,0,.35)'; c.fillRect(30, 330, w - 60, 140); c.fillStyle = '#ff5a5a'; c.font = `40px ${FONT}`; c.fillText("ALOQA YO'Q", w / 2, 395); c.fillStyle = '#fff'; c.font = `24px ${FONT}`; c.fillText('Tarmoq topilmadi', w / 2, 440);
+        for (let i = 0; i < 4; i++) { c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(30 + i * 14, 40 - i * 6, 10, 10 + i * 6); } c.strokeStyle = '#ff5a5a'; c.lineWidth = 5; c.beginPath(); c.moveTo(26, 22); c.lineTo(88, 54); c.stroke();
+      } else if (state === 'call') {
+        c.font = `26px ${FONT}`; c.globalAlpha = .75; c.fillText(a.talk ? "Qo'ng'iroq  " + a.talk : "Kiruvchi qo'ng'iroq", w / 2, 120); c.globalAlpha = 1;
+        c.font = `42px ${FONT}`; c.fillText("NOMA'LUM", w / 2, 210); c.fillText('RAQAM', w / 2, 260);
+        c.beginPath(); c.arc(w / 2, 400, 72, 0, 7); c.fillStyle = '#2a5a3a'; c.fill(); c.font = `84px ${FONT}`; c.fillStyle = '#fff'; c.fillText('?', w / 2, 430);
+        if (!a.talk) { c.beginPath(); c.arc(90, 610, 42, 0, 7); c.fillStyle = '#e53950'; c.fill(); c.beginPath(); c.arc(270, 610, 42, 0, 7); c.fillStyle = '#2ecc71'; c.fill(); }
+        else { c.beginPath(); c.arc(w / 2, 610, 42, 0, 7); c.fillStyle = '#e53950'; c.fill(); }
+      }
+    });
+  };
+  g.userData.show('nosig');
+  return g;
+}
 export const ZOMBIES = [];
 for (let i = 0; i < 36; i++) {
   const c = ZC[i % ZC.length];
@@ -292,8 +322,10 @@ export const STORE = (() => {
   // spilled items on floor (shown later days)
   const spill = []; for (let i = 0; i < 26; i++) { const kk = pick(['can', 'box', 'bottle', 'snack']); const m = new THREE.Mesh(KINDS[kk].geo(), kindMat(kk, Math.floor(rnd() * 4))); m.position.set(-12 + rnd() * 22, 0.1, -12 + rnd() * 16); m.rotation.set(Math.PI / 2, rnd() * 6, 0); m.castShadow = true; g.add(m); spill.push(m); }
   // loading dock door (side wall, back right)
-  mesh(G.box(0.1, 3.6, 4), 0x8a8e98, 16.8, 1.8, -15, g, { th: 0.02 });
-  for (let y = 0.3; y < 3.6; y += 0.35) mesh(G.box(0.12, 0.04, 4), 0x6a6e78, 16.75, y, -15, g, { ink: false });
+  const dockHole = new THREE.Mesh(G.plane(4, 3.6), new THREE.MeshBasicMaterial({ color: 0x0a0c14 })); dockHole.position.set(16.84, 1.8, -15); dockHole.rotation.y = -Math.PI / 2; g.add(dockHole);
+  const dock = new THREE.Group(); dock.position.set(16.75, 3.6, -15); g.add(dock);
+  mesh(G.box(0.1, 3.6, 4), 0x8a8e98, 0, -1.8, 0, dock, { th: 0.02 });
+  for (let y = 0.3; y < 3.6; y += 0.35) mesh(G.box(0.12, 0.04, 4), 0x6a6e78, -0.03, -3.6 + y, 0, dock, { ink: false });
   const exitS = label('CHIQISH', 1.6, 0.5, '#1a8a3a', '#ffffff', 2, 150); exitS.position.set(16.8, 3.95, -15); exitS.rotation.y = -Math.PI / 2; g.add(exitS);
   // storage door on back wall
   mesh(G.box(2, 3, 0.2), 0x9a7a5a, -15, 1.5, -20.8, g, { th: 0.02 });
@@ -306,7 +338,7 @@ export const STORE = (() => {
   const outL = sun(0xfff0d8, 1.2, new THREE.Vector3(-10, 20, 50), 30); outL.target.position.set(0, 0, 30); outL.castShadow = false; g.add(outL, outL.target);
   const fl = new THREE.PointLight(0xffffff, 0, 14, 1.6); g.add(fl); // flashlight
   return {
-    g, aisles, barricade, boxesBar, cracks, glass, outCars, fl, spill,
+    g, aisles, barricade, boxesBar, cracks, glass, outCars, fl, spill, dock,
     update(t, c) {
       const on = c.lights !== 'off';
       const night = c.tod === 'night';
@@ -323,6 +355,8 @@ export const STORE = (() => {
       spill.forEach((m, i) => m.visible = (c.food ?? 1) < 0.85 && i < (1 - (c.food ?? 1)) * 40);
       const bn = c.barricade ?? 0; barricade.forEach((b, i) => b.visible = i < bn * barricade.length); boxesBar.forEach((b, i) => b.visible = bn >= 1 && i < (c.boxes ?? 0) * boxesBar.length);
       cracks.visible = !!c.cracks; cracks.material.opacity = c.cracks || 0;
+      dock.scale.y = 1 - (c.dock ?? 0) * 0.92;
+      glass.visible = !c.broken; if (c.broken) { cracks.visible = false; barricade.forEach((b, i) => { b.rotation.x = (i % 3 - 1) * 0.6 + 1.2 * Math.min(1, c.broken); b.position.y = 0.3; }); boxesBar.forEach((b, i) => { b.position.y = 0.3; b.rotation.z = i; }); }
       fl.intensity = c.flash ? 25 : 0; if (c.flashPos) fl.position.copy(c.flashPos);
     },
   };
@@ -419,15 +453,37 @@ export const ROAD = (() => {
   mesh(G.rbox(2.1, 0.5, 0.4, 0.05), 0x1a1a20, 0, 1.25, 3.1, cab, { th: 0.01 });
   const wheel = mesh(G.torus(0.2, 0.03, 8, 24), 0x111111, -0.5, 1.5, 2.85, cab, { th: 0.008 }); wheel.rotation.x = -0.9;
   const cradio = new THREE.Group(); mesh(G.rbox(0.4, 0.14, 0.1, 0.02), 0x111116, 0, 0, 0, cradio, { th: 0.008 }); const crl = new THREE.Mesh(G.plane(0.24, 0.06), glow(0x5ae86a, 2)); crl.position.z = 0.055; cradio.add(crl); cradio.position.set(0.2, 1.4, 3.05); cab.add(cradio);
+  // CAB interior set at local x=100
+  const K = new THREE.Group(); K.position.x = 100; g.add(K);
+  mesh(G.box(2.6, 0.1, 6.4), 0x3a3a42, 0, 0.9, -1.2, K, { ink: false });
+  mesh(G.box(0.1, 2.0, 6.4), 0x4a5a8a, -1.3, 1.9, -1.2, K, { ink: false }); mesh(G.box(0.1, 2.0, 6.4), 0x4a5a8a, 1.3, 1.9, -1.2, K, { ink: false });
+  mesh(G.box(2.6, 0.1, 6.4), 0x3a4a7a, 0, 2.9, -1.2, K, { ink: false });
+  mesh(G.rbox(2.5, 0.45, 0.5, 0.05), 0x1a1a22, 0, 1.45, 1.75, K, { th: 0.01 });
+  const kw = mesh(G.torus(0.2, 0.03, 8, 24), 0x111111, -0.55, 1.7, 1.45, K, { th: 0.008 }); kw.rotation.x = -1.0;
+  const kr = new THREE.Group(); mesh(G.rbox(0.42, 0.14, 0.1, 0.02), 0x111116, 0, 0, 0, kr, { th: 0.008 }); const krl = new THREE.Mesh(G.plane(0.26, 0.06), glow(0x5ae86a, 2)); krl.position.z = -0.055; krl.rotation.y = Math.PI; kr.add(krl); kr.position.set(0.25, 1.62, 1.55); K.add(kr);
+  mesh(G.rbox(2.3, 0.5, 0.6, 0.06), 0x6a3a2a, 0, 1.15, 0.2, K, { th: 0.012 }); mesh(G.rbox(2.3, 0.7, 0.15, 0.05), 0x6a3a2a, 0, 1.6, -0.15, K, { th: 0.012 });
+  // windows (bright dusk) front + sides
+  const skyM = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.15, 0.85), toneMapped: false });
+  const wf = new THREE.Mesh(G.plane(2.3, 0.9), skyM); wf.position.set(0, 2.25, 2.0); wf.rotation.y = Math.PI; K.add(wf);
+  for (const sx of [-1, 1]) { const w = new THREE.Mesh(G.plane(1.2, 0.75), skyM); w.position.set(sx * 1.24, 2.25, 1.0); w.rotation.y = -sx * Math.PI / 2; K.add(w); }
+  mesh(G.box(2.6, 2.0, 0.1), 0x4a5a8a, 0, 1.9, 2.05, K, { ink: false }).visible = false;
+  // passing trees silhouettes outside side windows
+  const passing = []; for (let i = 0; i < 6; i++) for (const sx of [-1, 1]) { const tr = new THREE.Mesh(G.sph(0.5, 10, 8), new THREE.MeshBasicMaterial({ color: 0x3a5a3a })); tr.position.set(sx * 1.6, 2.3, 0); tr.userData = { sx, ph: i / 6 }; K.add(tr); passing.push(tr); }
+  // cargo area divider + dim light
+  mesh(G.box(2.6, 1.0, 0.08), 0x2a2a30, 0, 2.4, -0.5, K, { ink: false });
+  const cl = new THREE.PointLight(0xffd8a0, 1.6, 6, 1.5); cl.position.set(0, 2.6, -2.5); K.add(cl);
+  const kl = new THREE.PointLight(0xffc8a0, 1.8, 6, 1.5); kl.position.set(0, 2.6, 1.3); K.add(kl);
+  for (let i = 0; i < 4; i++) mesh(G.box(0.7, 0.5, 0.6), 0xc89a62, -0.8 + (i % 2) * 0.5, 1.2 + Math.floor(i / 2) * 0.5, -3.6, K, { th: 0.012 });
   return {
-    g, truck, cab, props, crl,
+    g, truck, cab, props, crl, K, krl,
+    cabUpdate(t, c) { for (const tr of passing) { const k = ((t * 0.9 + tr.userData.ph) % 1); tr.position.z = 2.2 - k * 3.4; tr.visible = Math.abs(tr.position.z - 1.0) < 0.62; } krl.material.color.setRGB(c.radioOn ? 0.6 : 0.2, c.radioOn ? 3 : 0.6, c.radioOn ? 0.8 : 0.2); },
     update(t, c) {
       const dusk = c.tod === 'dusk';
       scene.background.set(dusk ? 0xf0b088 : 0xa8d0ff); scene.fog.color.copy(scene.background); scene.fog.near = 40; scene.fog.far = 220;
       sl.color.set(dusk ? 0xffa060 : 0xffe0b8); hemi.color.set(dusk ? 0xffc8a8 : 0xfff0e0);
       truck.position.set(c.truckX ?? -2.5, 0, c.truckZ ?? 0); truck.rotation.y = Math.PI;
       sl.position.set(truck.position.x + 20, 25, truck.position.z + 30); sl.target.position.copy(truck.position);
-      crl.material.color.setRGB(c.radioOn ? 0.6 : 0.2, c.radioOn ? 3 : 0.6, c.radioOn ? 0.8 : 0.2);
+      crl.material.color.setRGB(c.radioOn ? 0.6 : 0.2, c.radioOn ? 3 : 0.6, c.radioOn ? 0.8 : 0.2); this.cabUpdate(t, c);
     },
   };
 })();
