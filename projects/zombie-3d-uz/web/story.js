@@ -284,7 +284,7 @@ shot(S(49) - 0.1, 'STORE', (c, lt, d, v, t) => {
 shot(S(51) - 0.1, 'STORE', (c, lt, d, v, t) => {
   c.tod = 'night'; c.food = 0.35; c.barricade = 1; c.boxes = 1; c.cracks = 0.9; c.shake = 0.25;
   crowd(STORE, 16, -6, 6, 21.6, 25, t, Math.PI, 0, 3);
-  return cam(lt, d, V3(0.6, 0.6, 17.2), V3(0.6, 0.7, 17.8), V3(0, 1.4, 21), null, 48, 40);
+  return cam(lt, d, V3(-3.2, 1.5, 15.2), V3(-2.4, 1.45, 16.0), V3(0, 1.7, 21), null, 46, 42);
 });
 shot(S(52) - 0.1, 'BACK', (c, lt, d, v, t) => {
   c.foodPile = lerp(0.3, 1, clamp(lt / 3)); c.exitOpen = 0;
@@ -458,6 +458,13 @@ shot(S(95) - 0.1, 'ROAD', (c, lt, d, v, t) => {
 });
 shot(VEND + 0.2, 'ROAD', (c, lt, d, v, t) => { c.tod = 'dusk'; c.truckZ = roadZ(v); c.overlay = 'end'; return { pos: V3(-30, 26, c.truckZ + 30), look: V3(-2.5, 1.5, c.truckZ - 30), fov: 44 }; });
 
+// thumbnail shot (never reached in the video)
+shot(900, 'STORE', (c, lt, d, v, t) => {
+  c.tod = 'day'; c.cracks = 0.45; c.red = 0;
+  crowd(STORE, 14, -3.2, 3.6, 21.5, 23.5, 3, Math.PI, 0, 0);
+  const st = reset(C.sardor, STORE, 0.9, 18.9, Math.PI + 0.5); st.eyeS = 1.5; st.brow = 1; st.talk = 0.9; st.armUp = [0.5, 0.5]; st.armOut = [0.6, 0.6]; st.headYaw = 0; st.look = [-0.3, 0];
+  return { pos: V3(-0.5, 1.55, 16.6), look: V3(0.6, 1.75, 20), fov: 42 };
+});
 // ---------------------------------------------------------------- overlay
 const ov = document.createElement('canvas'); ov.width = 1920; ov.height = 1080; const oc = ov.getContext('2d');
 function txt(s, x, y, size, col = '#fff', align = 'center', alpha = 1, stroke = 0) {
@@ -522,7 +529,7 @@ function drawOverlay(c, v, lt) {
     txt("Siz qancha omon qolgan bo'lardingiz?", 960, 570, 56, '#ffd628', 'center', clamp((lt - 0.8) / 0.5), 8);
     rrect(760, 650, 400, 90, 45, '#e8302a', clamp((lt - 1.3) / 0.5), 5); txt("OBUNA BO'LING", 960, 696, 44, '#fff', 'center', clamp((lt - 1.3) / 0.5));
   }
-  hud(v); captions(v);
+  if (!location.search.includes('clean')) { hud(v); captions(v); }
 }
 
 // ---------------------------------------------------------------- frame
@@ -547,7 +554,7 @@ window.renderFrame = (fi) => {
   post.red = Math.max(c.flashRed || 0, c.red && cur.set === 'STORE' && c.lights !== 'off' ? 0.08 + 0.08 * Math.sin(t * 7) : 0);
   post.flash = c.flashW || 0;
   post.tint.set(cur.set === 'BACK' ? 0xfff2e4 : c.tod === 'night' ? 0xdfe6ff : c.tod === 'dusk' ? 0xfff0e4 : 0xffffff);
-  post.fade = Math.max(idx > 0 && lt < 0.08 ? (1 - lt / 0.08) * 0.5 : 0, v < -PRE + 0.4 ? 1 - (v + PRE) / 0.4 : 0, v > DUR - PRE - 0.8 ? clamp((v - (DUR - PRE - 0.8)) / 0.8) : 0);
+  post.fade = Math.max(idx > 0 && lt < 0.08 ? (1 - lt / 0.08) * 0.5 : 0, v < -PRE + 0.4 ? 1 - (v + PRE) / 0.4 : 0, (v > DUR - PRE - 0.8 && v < 800) ? clamp((v - (DUR - PRE - 0.8)) / 0.8) : 0);
   renderComposite(scene, camera);
   drawOverlay(c, v, lt);
   return ov.toDataURL('image/jpeg', 0.92);
