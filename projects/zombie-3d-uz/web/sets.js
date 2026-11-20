@@ -22,34 +22,84 @@ function label(text, w, h, bg, fg, size = 0.8, font = 90) {
   return new THREE.Mesh(G.plane(w, h), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, color: new THREE.Color(size, size, size) }));
 }
 const PCOL = [0xe8463a, 0xf2c94c, 0x3a7bff, 0x5ae8a0, 0xff7ad0, 0xff9a3a, 0xffffff, 0x7a4ae8];
-// shelf run along z, centered x,z, length L; returns {inst, setFill(f)}
-function shelfRun(parent, x, z, L, opt = {}) {
-  const H = opt.h ?? 2.2, D = 1.1;
-  const body = mesh(G.box(D, 0.15, L), 0xdfe3ea, x, 0.08, z, parent, { th: 0.02 });
-  mesh(G.box(0.12, H, L), 0xb8bec8, x, H / 2, z, parent, { th: 0.02 });
-  for (let r = 1; r <= 4; r++) mesh(G.box(D, 0.05, L), 0xe8ecf2, x, r * H / 4.6, z, parent, { ink: false });
-  for (const zz of [-L / 2, L / 2]) mesh(G.box(D + 0.05, H, 0.08), 0xc8ced8, x, H / 2, z + zz, parent, { th: 0.015 });
-  const n = Math.floor(L / 0.32); const N = 2 * 4 * n;
-  const inst = new THREE.InstancedMesh(G.box(0.36, 0.34, 0.26), new THREE.MeshToonMaterial({ gradientMap: GM }), N); inst.castShadow = true; inst.receiveShadow = true;
-  const m4 = new THREE.Matrix4(), col = new THREE.Color(); const slots = [];
-  let k = 0;
-  for (const side of [-1, 1]) for (let r = 0; r < 4; r++) {
-    const c0 = pick(PCOL);
-    for (let i = 0; i < n; i++) {
-      const pos = [x + side * 0.32, r * H / 4.6 + 0.2 + 0.025, z - L / 2 + 0.2 + i * 0.32];
-      m4.makeTranslation(...pos); inst.setMatrixAt(k, m4); inst.setColorAt(k, col.set(rnd() < 0.7 ? c0 : pick(PCOL))); slots.push({ pos, keep: rnd() }); k++;
+// ---- product textures (fictional brands)
+function prodTex(kind, bg, fg, name, sub) {
+  const cyl = kind === 'can' || kind === 'bottle';
+  return canvasTex(cyl ? 512 : 256, 256, (c, w, h) => {
+    c.fillStyle = bg; c.fillRect(0, 0, w, h);
+    const reps = cyl ? [w * 0.25, w * 0.75] : [w / 2];
+    if (kind === 'bottle') { c.fillStyle = 'rgba(255,255,255,0.35)'; c.fillRect(0, 0, w, 50); }
+    if (kind === 'can') { c.fillStyle = '#d8d8de'; c.fillRect(0, 0, w, 22); c.fillRect(0, h - 22, w, 22); }
+    if (!cyl) { c.fillStyle = 'rgba(255,255,255,0.18)'; c.beginPath(); c.arc(w * 0.75, h * 0.3, 70, 0, 7); c.fill(); }
+    for (const cx of reps) {
+      const bw = cyl ? 220 : w - 28;
+      c.fillStyle = '#ffffff'; c.fillRect(cx - bw / 2, h * 0.36, bw, 72);
+      let fs = 52; c.font = `${fs}px ${FONT}`; while (c.measureText(name).width > bw - 14) { fs -= 2; c.font = `${fs}px ${FONT}`; }
+      c.fillStyle = fg; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(name, cx, h * 0.36 + 38);
+      c.fillStyle = kind === 'milk' ? fg : '#ffffff'; c.font = `26px ${FONT}`; c.fillText(sub, cx, h * 0.8);
     }
+  });
+}
+const KINDS = {
+  can: { geo: () => G.cyl(0.11, 0.11, 0.24, 16), y: 0.12, step: 0.26, v: [['#c8282a', '#c8282a', 'LOVIYA', 'konserva'], ['#2a8a3a', '#2a8a3a', "NO'XAT", 'konserva'], ['#e8a020', '#c86a10', 'MAKKA', 'shirin'], ['#3a5ac8', '#3a5ac8', 'BALIQ', 'tuna']] },
+  bottle: { geo: () => G.cyl(0.085, 0.09, 0.38, 14), y: 0.19, step: 0.22, v: [['#7ac8f0', '#1a6ab8', 'TOZA SUV', '1.5 L'], ['#8a1a1a', '#c8282a', 'KOLA', '1 L'], ['#f0a020', '#e86a10', 'SHARBAT', 'apelsin'], ['#5ad08a', '#1a8a4a', 'LIMONAD', '1 L']] },
+  box: { geo: () => G.box(0.3, 0.42, 0.14), y: 0.21, step: 0.33, v: [['#e8b830', '#c8582a', 'YORMA', 'nonushta'], ['#c8462a', '#c8462a', 'GURUCH', '1 kg'], ['#3a7ad8', '#2a4ab8', 'MAKARON', 'spagetti'], ['#7a4ae8', '#5a2ac8', 'PECHENYE', 'shokoladli']] },
+  milk: { geo: () => G.box(0.18, 0.34, 0.18), y: 0.17, step: 0.22, v: [['#f4f4f8', '#2a6ad8', 'SUT', '3.2%'], ['#f4f4f8', '#d84a8a', 'KEFIR', '1 L'], ['#fff4c8', '#c88a10', 'QATIQ', 'tabiiy'], ['#e8f0ff', '#3a8a5a', 'AYRON', '0.5 L']] },
+  snack: { geo: () => G.box(0.32, 0.36, 0.12), y: 0.18, step: 0.34, v: [['#e8302a', '#e8302a', 'CHIPS', 'pishloqli'], ['#2a2a30', '#e8b830', 'SHOKOLAD', 'qora'], ['#f07ad0', '#c83aa0', 'KONFET', 'mevali'], ['#f2c94c', '#c87a10', 'KREKER', 'tuzli']] },
+};
+const TEXC = {};
+function kindMat(kind, vi) {
+  const k = kind + vi; if (TEXC[k]) return TEXC[k];
+  const [bg, fg, name, sub] = KINDS[kind].v[vi];
+  return TEXC[k] = new THREE.MeshToonMaterial({ gradientMap: GM, map: prodTex(kind, bg, fg, name, sub) });
+}
+const tagTex = canvasTex(512, 32, (c, w, h) => { c.fillStyle = '#f4f4f4'; c.fillRect(0, 0, w, h); for (let x = 6; x < w; x += 64) { c.fillStyle = '#f2d02a'; c.fillRect(x, 3, 46, 26); c.fillStyle = '#c8282a'; c.font = `15px ${FONT}`; c.textAlign = 'center'; c.fillText(((5 + (x * 7) % 40) * 1000).toLocaleString('ru').replace(/\s/g, ' '), x + 23, 22); } });
+tagTex.wrapS = THREE.RepeatWrapping;
+// shelf run along z, centered x,z, length L
+function shelfRun(parent, x, z, L, kind = 'box') {
+  const H = 2.2, D = 1.1, K = KINDS[kind];
+  mesh(G.box(D, 0.15, L), 0xdfe3ea, x, 0.08, z, parent, { th: 0.02 });
+  mesh(G.box(0.12, H, L), 0xb8bec8, x, H / 2, z, parent, { th: 0.02 });
+  const tm = new THREE.MeshToonMaterial({ gradientMap: GM, map: tagTex.clone() }); tm.map.wrapS = THREE.RepeatWrapping; tm.map.repeat.set(L / 2.5, 1); tm.map.needsUpdate = true;
+  for (let r = 1; r <= 4; r++) {
+    mesh(G.box(D, 0.05, L), 0xe8ecf2, x, r * H / 4.6, z, parent, { ink: false });
+    for (const s of [-1, 1]) { const tg = new THREE.Mesh(G.plane(L, 0.07), tm); tg.position.set(x + s * (D / 2 + 0.005), r * H / 4.6 - 0.03, z); tg.rotation.y = s * Math.PI / 2; parent.add(tg); }
   }
-  parent.add(inst);
-  let lastF = -1;
+  for (const zz of [-L / 2, L / 2]) mesh(G.box(D + 0.05, H, 0.08), 0xc8ced8, x, H / 2, z + zz, parent, { th: 0.015 });
+  const n = Math.floor((L - 0.3) / K.step);
+  const groups = [];
+  const slots = [];
+  for (const side of [-1, 1]) for (let r = 0; r < 4; r++) {
+    const vi = Math.floor(rnd() * 4);
+    const inst = new THREE.InstancedMesh(K.geo(), kindMat(kind, vi), n * (kind === 'bottle' || kind === 'can' || kind === 'milk' ? 2 : 1));
+    inst.castShadow = true; inst.receiveShadow = true;
+    const m4 = new THREE.Matrix4(); let k = 0;
+    const rows = inst.count / n;
+    for (let d = 0; d < rows; d++) for (let i = 0; i < n; i++) {
+      const pos = [x + side * (0.22 + d * 0.24), r * H / 4.6 + 0.025 + K.y, z - L / 2 + 0.25 + i * K.step];
+      const rot = side > 0 ? Math.PI / 2 : -Math.PI / 2;
+      m4.makeRotationY(rot).setPosition(...pos); inst.setMatrixAt(k, m4); slots.push({ inst, k, pos, rot, keep: rnd() }); k++;
+    }
+    parent.add(inst); groups.push(inst);
+  }
+  let lastF = -1; const m4 = new THREE.Matrix4();
   return {
-    inst, setFill(f) {
+    groups, setFill(f) {
       if (Math.abs(f - lastF) < 0.01) return; lastF = f;
-      slots.forEach((s, i) => { m4.makeTranslation(...s.pos); if (s.keep > f) m4.makeScale(0, 0, 0); inst.setMatrixAt(i, m4); });
-      inst.instanceMatrix.needsUpdate = true;
+      for (const s of slots) { if (s.keep > f) m4.makeScale(0, 0, 0); else m4.makeRotationY(s.rot).setPosition(...s.pos); s.inst.setMatrixAt(s.k, m4); }
+      for (const gI of groups) gI.instanceMatrix.needsUpdate = true;
     }
   };
 }
+// cardboard box material
+const cardTex = (txt) => canvasTex(256, 256, (c, w, h) => {
+  c.fillStyle = '#c89a62'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(0,0,0,0.06)'; for (let i = 0; i < 30; i++) c.fillRect(0, i * 9, w, 2);
+  c.fillStyle = '#d8c8a0'; c.fillRect(w / 2 - 22, 0, 44, h); c.strokeStyle = '#6a4a2a'; c.lineWidth = 4; c.strokeRect(10, 10, w - 20, h - 20);
+  c.fillStyle = '#5a3a1a'; c.font = `34px ${FONT}`; c.textAlign = 'center'; c.fillText(txt, w / 2, 90);
+  c.font = `20px ${FONT}`; c.fillText('MEGA MART', w / 2, 200); c.beginPath(); c.moveTo(40, 160); c.lineTo(60, 130); c.lineTo(80, 160); c.fill(); c.beginPath(); c.moveTo(176, 160); c.lineTo(196, 130); c.lineTo(216, 160); c.fill();
+});
+export const CARD = ['KONSERVA', 'SUV', 'GURUCH', 'UN', 'SHAKAR'].map(t => new THREE.MeshToonMaterial({ gradientMap: GM, map: cardTex(t) }));
+
 export function makeCart(parent, x = 0, z = 0, ry = 0) {
   const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry;
   const wire = toon(0xc8d0dc);
@@ -204,9 +254,9 @@ export const STORE = (() => {
   for (let i = 0; i < 14; i++) { const x = -40 + i * 6, z = 70; mesh(G.sph(2.5, 12, 8), 0x3a8a4a, x, 3, z, g, { th: 0.03 }); }
   // aisles
   const aisles = [];
-  for (const x of [-12, -7, -2, 3, 8]) aisles.push(shelfRun(g, x, -5, 18));
+  [['can', -12], ['bottle', -7], ['box', -2], ['milk', 3], ['snack', 8]].forEach(([k, x]) => aisles.push(shelfRun(g, x, -5, 18, k)));
   // aisle hanging signs
-  const names = ['KONSERVA', 'ICHIMLIK', 'NON', 'SUT', 'MEVA'];
+  const names = ['KONSERVA', 'ICHIMLIK', 'YORMA', 'SUT', 'SHIRINLIK'];
   [-9.5, -4.5, 0.5, 5.5, 10.5].forEach((x, i) => { const s = label(names[i], 2.6, 0.6, '#2a5ad8', '#ffffff', 1.1, 110); s.position.set(x, 4.6, 4.2); g.add(s); const s2 = s.clone(); s2.rotation.y = Math.PI; s2.position.z = 4.18; g.add(s2); });
   // freezers on back wall
   const frGlow = [];
@@ -226,7 +276,7 @@ export const STORE = (() => {
   // carts: parked row + barricade set
   const parked = []; for (let i = 0; i < 6; i++) parked.push(makeCart(g, 11 + i * 0.25, 16 + i * 0.05, Math.PI / 2));
   const barricade = []; for (let i = 0; i < 14; i++) { const ct = makeCart(g, -4 + (i % 7) * 1.2, 19.8 - Math.floor(i / 7) * 1.1, (rnd() - .5) * 0.5 + Math.PI); barricade.push(ct); }
-  const boxesBar = []; for (let i = 0; i < 10; i++) boxesBar.push(mesh(G.box(0.8, 0.6, 0.6), 0xc09a6a, -4.5 + (i % 5) * 2, 1.5 + Math.floor(i / 5) * 0.62, 19.9, g, { th: 0.015 }));
+  const boxesBar = []; for (let i = 0; i < 10; i++) boxesBar.push(mesh(G.box(0.8, 0.6, 0.6), pick(CARD), -4.5 + (i % 5) * 2, 1.5 + Math.floor(i / 5) * 0.62, 19.9, g, { th: 0.015 }));
   // ceiling light panels
   const panels = [];
   for (let x = -12; x <= 12; x += 6) for (let z = -16; z <= 16; z += 6) { const p = new THREE.Mesh(G.box(3, 0.06, 0.5), glow(0xffffff, 2.2)); p.position.set(x, 6.22, z); g.add(p); panels.push(p); }
@@ -235,6 +285,12 @@ export const STORE = (() => {
   for (const [x, z] of [[-16.7, -10], [16.7, -10], [-16.7, 8], [16.7, 8], [0, -20.7]]) { const r = new THREE.Mesh(G.box(0.4, 0.25, 0.3), glow(0xff2020, 2)); r.position.set(x, 5.2, z); g.add(r); reds.push(r); }
   const redL = new THREE.PointLight(0xff2a2a, 0, 40, 1.4); redL.position.set(0, 5, -4); g.add(redL);
   const redL2 = new THREE.PointLight(0xff2a2a, 0, 30, 1.4); redL2.position.set(0, 4, 14); g.add(redL2);
+  for (const [t, bg, fg, x, z, ry] of [['AKSIYA -50%', '#e8302a', '#ffffff', -16.82, -2, Math.PI / 2], ['HAR KUNI ARZON', '#f2c94c', '#2a5ad8', -16.82, 10, Math.PI / 2], ['YANGI HOSIL', '#3a9a4a', '#ffffff', 16.82, 0, -Math.PI / 2], ['XUSH KELIBSIZ!', '#2a5ad8', '#ffffff', 0, -20.82, 0]]) { const ps = label(t, 5, 1.2, bg, fg, 1.15, 140); ps.position.set(x, 3.6, z); ps.rotation.y = ry; g.add(ps); }
+  const wet = new THREE.Group(); wet.position.set(-4.5, 0, 6); wet.rotation.y = 0.6; g.add(wet);
+  for (const s2 of [-1, 1]) { const pnl = mesh(G.box(0.5, 0.75, 0.03), 0xf2d02a, 0, 0.36, s2 * 0.12, wet, { th: 0.01 }); pnl.rotation.x = s2 * 0.3; }
+  const wl = label("HO'L POL!", 0.45, 0.2, '#f2d02a', '#1a1a1a', 1, 150); wl.position.set(0, 0.45, 0.25); wl.rotation.x = -0.3; wet.add(wl);
+  // spilled items on floor (shown later days)
+  const spill = []; for (let i = 0; i < 26; i++) { const kk = pick(['can', 'box', 'bottle', 'snack']); const m = new THREE.Mesh(KINDS[kk].geo(), kindMat(kk, Math.floor(rnd() * 4))); m.position.set(-12 + rnd() * 22, 0.1, -12 + rnd() * 16); m.rotation.set(Math.PI / 2, rnd() * 6, 0); m.castShadow = true; g.add(m); spill.push(m); }
   // loading dock door (side wall, back right)
   mesh(G.box(0.1, 3.6, 4), 0x8a8e98, 16.8, 1.8, -15, g, { th: 0.02 });
   for (let y = 0.3; y < 3.6; y += 0.35) mesh(G.box(0.12, 0.04, 4), 0x6a6e78, 16.75, y, -15, g, { ink: false });
@@ -250,7 +306,7 @@ export const STORE = (() => {
   const outL = sun(0xfff0d8, 1.2, new THREE.Vector3(-10, 20, 50), 30); outL.target.position.set(0, 0, 30); outL.castShadow = false; g.add(outL, outL.target);
   const fl = new THREE.PointLight(0xffffff, 0, 14, 1.6); g.add(fl); // flashlight
   return {
-    g, aisles, barricade, boxesBar, cracks, glass, outCars, fl,
+    g, aisles, barricade, boxesBar, cracks, glass, outCars, fl, spill,
     update(t, c) {
       const on = c.lights !== 'off';
       const night = c.tod === 'night';
@@ -264,6 +320,7 @@ export const STORE = (() => {
       for (const r of reds) r.material.color.setRGB(c.red ? 1 + 2.5 * rp : 0.5, 0.08, 0.08);
       redL.intensity = c.red ? 30 * rp : 0; redL2.intensity = c.red ? 20 * rp : 0;
       for (const a of aisles) a.setFill(c.food ?? 1);
+      spill.forEach((m, i) => m.visible = (c.food ?? 1) < 0.85 && i < (1 - (c.food ?? 1)) * 40);
       const bn = c.barricade ?? 0; barricade.forEach((b, i) => b.visible = i < bn * barricade.length); boxesBar.forEach((b, i) => b.visible = bn >= 1 && i < (c.boxes ?? 0) * boxesBar.length);
       cracks.visible = !!c.cracks; cracks.material.opacity = c.cracks || 0;
       fl.intensity = c.flash ? 25 : 0; if (c.flashPos) fl.position.copy(c.flashPos);
@@ -286,10 +343,10 @@ export const BACK = (() => {
   for (const x of [-5.5, 5.5]) for (const z of [-5, 0]) {
     for (const y of [0.05, 1.3, 2.55]) mesh(G.box(2.2, 0.08, 3.4), 0x6a7a8a, x, y, z, g, { th: 0.012 });
     for (const [a, b] of [[-1, -1.6], [1, -1.6], [-1, 1.6], [1, 1.6]]) mesh(G.box(0.08, 3.6, 0.08), 0x4a5a6a, x + a, 1.8, z + b, g, { ink: false });
-    for (const y of [0.1, 1.35, 2.6]) for (let i = 0; i < 3; i++) crates.push(mesh(G.box(1.8, 0.9, 0.95), pick([0xc09a6a, 0xb08a5a, 0xd0aa7a]), x, y + 0.45, z - 1.1 + i * 1.1, g, { th: 0.015 }));
+    for (const y of [0.1, 1.35, 2.6]) for (let i = 0; i < 3; i++) crates.push(mesh(G.box(1.8, 0.9, 0.95), pick(CARD), x, y + 0.45, z - 1.1 + i * 1.1, g, { th: 0.015 }));
   }
   // empty boxes on floor
-  const empties = []; for (let i = 0; i < 7; i++) { const b = mesh(G.box(0.7, 0.45, 0.55), 0xc8a070, -1.5 + rnd() * 3, 0.22, -1 + rnd() * 3, g, { th: 0.012 }); b.rotation.set(rnd() * 0.3, rnd() * 3, rnd() < .4 ? Math.PI / 2 : 0); empties.push(b); }
+  const empties = []; for (let i = 0; i < 7; i++) { const b = mesh(G.box(0.7, 0.45, 0.55), pick(CARD), -1.5 + rnd() * 3, 0.22, -1 + rnd() * 3, g, { th: 0.012 }); b.rotation.set(rnd() * 0.3, rnd() * 3, rnd() < .4 ? Math.PI / 2 : 0); empties.push(b); }
   for (let i = 0; i < 6; i++) { const cn = mesh(G.cyl(0.1, 0.1, 0.24, 10), 0xc8c8d0, -1 + rnd() * 2.4, 0.1, 0.5 + rnd() * 2, g, { th: 0.008 }); cn.rotation.z = Math.PI / 2; cn.rotation.y = rnd() * 3; empties.push(cn); }
   // door with handprint on right wall
   const door = mesh(G.box(0.15, 2.8, 1.6), 0x7a6a5a, 7.85, 1.4, 4, g, { th: 0.02 });
@@ -336,7 +393,7 @@ export const BACK = (() => {
       door.rotation.y = 0; door.position.x = 7.85 + (c.knock ? Math.sin(t * 40) * 0.015 * (Math.sin(t * 3) > 0.3 ? 1 : 0) : 0);
       const fo = c.foodPile ?? 1; foodPile.forEach((b, i) => b.visible = i < fo * foodPile.length);
       exitDoor.rotation.y = -(c.exitOpen ?? 0) * 1.6; doorLight.visible = (c.exitOpen ?? 0) > 0.05;
-      rl.material.color.setRGB(Math.sin(t * 8) > 0 ? 3 : 0.4, 0.1, 0.1);
+      rl.material.color.setRGB(Math.sin(t * 8) > 0 ? 3 : 0.4, 0.1, 0.1); radio.visible = !!c.radio;
     },
   };
 })();

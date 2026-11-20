@@ -20,7 +20,9 @@ const PV = [
   ['STORE', { tod: 'night', lights: 'off', red: 1, food: 0.3 }, V3(-4.5, 1.7, 8), V3(-4.5, 1.5, -12), 42, t => { place(ZOMBIES[3], STORE, -4.3, 0, -6, 0); zpose(ZOMBIES[3], t, t); place(CAST.sardor, STORE, -4.8, 0, 4, Math.PI); }],
   ['BACK', { empties: 1, handprint: 1, foodPile: 1 }, V3(-3, 1.9, -5.5), V3(4, 1.3, 3), 45, t => { place(CAST.sardor, BACK, 2, 0, 1, Math.PI * 0.6); }],
   ['BACK', { exitOpen: 0.5, foodPile: 1 }, V3(-4, 2.2, -24.5), V3(3, 1.2, -30), 48, t => { place(CAST.sardor, BACK, 2, 0, -29, 1.4); place(CAST.girl, BACK, 1, 0, -28.5, 1.4); }],
-  ['BACK', {}, V3(0.3, 1.6, -58), V3(0, 1.5, -75), 50, t => { place(CAST.jacket, BACK, 0, 0, -64, 0); BACK.radio.position.set(0.2, 1.1, -63.6); }],
+  ['BACK', { radio: 1 }, V3(0.3, 1.6, -58), V3(0, 1.5, -75), 50, t => { place(CAST.jacket, BACK, 0, 0, -64, 0); BACK.radio.position.set(0.2, 1.1, -63.6); }, ],
+  ['STORE', { tod: 'day', lights: 'on', food: 1 }, V3(-5.6, 1.5, -1), V3(-6.6, 1.0, -6), 40, t => { place(CAST.sardor, STORE, -5.4, 0, -4.5, -1.2); }],
+  ['STORE', { tod: 'day', lights: 'on', food: 0.35 }, V3(-10.5, 1.4, 1), V3(-11.8, 0.9, -4), 42, t => { }],
   ['ROAD', { tod: 'dusk', truckZ: 0 }, V3(-9, 3, -12), V3(-2.5, 1.8, 0), 40, t => { }],
 ];
 window.renderFrame = (fi) => {
