@@ -1,0 +1,5 @@
+<!doctype html><html><head><style>body{margin:0;background:#000}@font-face{font-family:InterX;src:url(Inter-Black.otf)}@font-face{font-family:InterB;src:url(Inter-ExtraBold.otf)}</style></head><body><script type="module">
+await document.fonts.load('40px InterX'); await document.fonts.load('40px InterB');
+window.addEventListener('error', e => { window.err = String(e.message); });
+try { await import('./' + (new URLSearchParams(location.search).get('m') || 'story') + '.js'); } catch (e) { window.err = String(e.stack || e); window.ready = true; }
+</script></body></html>
