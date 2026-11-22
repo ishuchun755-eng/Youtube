@@ -1,0 +1,5 @@
+<!doctype html><html><head><style>body{margin:0;background:#000}@font-face{font-family:InterX;src:url(Inter-Black.otf)}</style></head><body><script type="module">
+await document.fonts.load('40px InterX');
+window.addEventListener('error', e => { window.err = String(e.message); });
+try { await import('./scene.js'); } catch (e) { window.err = String(e.stack || e); window.ready = true; }
+</script></body></html>
