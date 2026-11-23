@@ -1,0 +1,26 @@
+import { THREE, camera, draw, frameOut, og, W, H, look } from './comic.js';
+import * as S from './sets.js';
+import { makeDoni, pose, face, POSES, mixPose } from './doni.js';
+const X = S.OFF.steppe[0];
+const D = makeDoni(); S.scene.add(D);
+const key = new THREE.PointLight('#fff2dc', 9 * Math.PI, 6, 1.2); S.scene.add(key);
+window.renderFrame = () => {
+  S.setEnv('nightburan', { fog: ['#34445f', 3, 30] }); look.vignette = .5;
+  S.car.position.set(6.4, -.62, -20); S.car.rotation.set(.06, .3, -.12); S.car.userData.set({ lights: true, beams: true, snow: .6, bury: .5, hazard: true, t: 0 });
+  S.aimSun(X + 5, 0, -18, 10);
+  D.userData.setJacket(true); D.userData.setBeanie(true); D.position.set(X + 3.6, -.25, -15.5); D.rotation.y = .1;
+  pose(D, mixPose(POSES.worried, { ...POSES.worried, armL: [-.6, 0, .5], elbowL: [-2.2, 0, 0], armR: [-.6, 0, -.5], elbowR: [-2.2, 0, 0] }, .7));
+  face(D, { brow: -1, raise: 1, mouth: .8, look: [.2, .2] });
+  S.weather(3, X + 4, 0, -15, .55, 1, 12); key.position.set(X + 3.3, 2.0, -13.6); S.pozemka(3, X + 4, -15, 1, .8);
+  camera.fov = 32; camera.position.set(X + 2.9, 1.7, -12.9); camera.lookAt(X + 4.6, 1.15, -17.0); camera.updateProjectionMatrix();
+  draw(S.scene, { t: 3 });
+  og.clearRect(0, 0, W, H);
+  const big = (txt, x, y, sz, bg, fg, rot) => { og.save(); og.translate(x, y); og.rotate(rot * Math.PI / 180); og.font = `900 ${sz}px InterX`; const w = og.measureText(txt).width + sz * .6, h = sz * 1.2;
+    og.fillStyle = '#15121a'; og.fillRect(-w / 2 + 14, -h / 2 + 14, w, h); og.fillStyle = bg; og.fillRect(-w / 2, -h / 2, w, h); og.lineWidth = 10; og.strokeStyle = '#15121a'; og.strokeRect(-w / 2, -h / 2, w, h);
+    og.fillStyle = fg; og.textAlign = 'center'; og.textBaseline = 'middle'; og.fillText(txt, 0, sz * .05); og.restore(); };
+  big('−40°C', 420, 230, 200, '#7cc4ff', '#15121a', -5);
+  big('3 ДНЯ', 1480, 640, 150, '#ffd33d', '#15121a', 3);
+  big('В БУРАНЕ', 1480, 830, 130, '#e8473a', '#ffffff', -2);
+  return frameOut(.95);
+};
+window.ready = true;

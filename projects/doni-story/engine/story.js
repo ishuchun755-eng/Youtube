@@ -286,7 +286,8 @@ B(158, (t, lt, k, s) => { S.setEnv('buran'); carDitch({ lights: false, snow: .9,
   handPhone.userData.draw('notes', { items, bat: 40, nosig: true }); 
   if (s >= 159) plateQ.push(['✓ ТРУБА', W * .2, 320, T0(159)]); if (s >= 160) plateQ.push(['✓ ПРОГРЕВ', W * .2, 440, T0(160)]); if (s >= 161) plateQ.push(['✓ ЗАМЕТКА', W * .2, 560, T0(161)]);
   if (s >= 164) plateQ.push(['ПОЛЯРНИКИ · СПАСАТЕЛИ · КОСМОНАВТЫ', W / 2, 220, T0(164)]);
-  return icam(s < 162 ? 'hands' : 'face'); });
+  if (s < 162) { info(t); const ph = props.phone; ph.visible = true; ph.position.set(0, 1.6, 0); ph.scale.setScalar(1.25); ph.rotation.y = Math.sin(t * .7) * .1; ph.userData.draw('notes', { items, bat: 40, nosig: true }); return { pos: IV(.9, 1.7, 3.2), look: IV(.4, 1.6, 0), fov: 34 }; }
+  return icam('face'); });
 // truck passes 165-169
 B(165, (t, lt, k, s) => { S.setEnv('day', { fog: ['#e3eaf1', 20, 220] }); HUD = ['1-Й ДЕНЬ', '−30°C']; carDitch({ lights: false, snow: 1, bury: .8 }); S.aimSun(X + 6, 0, -20, 14);
   const tz = 60 - (t - T0(165)) * 8; S.truck.position.set(-1.8, 0, tz); S.truck.rotation.y = Math.PI; S.truck.userData.brake.forEach(b => b.visible = false);
@@ -311,7 +312,7 @@ B(176, (t, lt, k, s) => { S.setEnv('night', { tint: [.6, .72, 1.12] }); HUD = ['
 B(183, (t, lt, k, s) => { S.setEnv('night', { tint: [.7, .78, 1.08] }); carDitch({ lights: false, snow: 1, bury: .85, inside: true, cabin: .35, fuel: .24 }); inCar(POSES.phone, { brow: -.3, smile: s >= 186 ? .4 : 0, look: [0, -.6], blink: blinkAt(t) }, t);
   handPhone.visible = true; const who = s < 186 ? [] : [{ bg: '#f2d8b8', who: 'mom' }, { bg: '#cfe3f3', who: 'girl' }, { bg: '#f8e2a8', who: 'kid,kid' }, { bg: '#d3ecd5', who: 'friend' }].slice(0, Math.min(4, s - 185));
   handPhone.userData.draw('photos', { photos: who, bat: 12, nosig: true }); 
-  if (s >= 186 && s < 190) return icam('hands', .25);
+  if (s >= 186 && s < 190) { info(t); const ph = props.phone; ph.visible = true; ph.position.set(0, 1.6, 0); ph.scale.setScalar(1.25); ph.rotation.y = Math.sin(t * .7) * .1; ph.userData.draw('photos', { photos: who, bat: 12, nosig: true }); return { pos: IV(.3, 1.7, 3.2), look: IV(0, 1.6, 0), fov: 34 }; }
   if (s >= 190) plateQ.push(['ЕСТЬ «ЗАЧЕМ» → НАЙДЁШЬ «КАК»', W / 2, 220, T0(190)]);
   return icam('face'); });
 // humor 191-195
@@ -366,7 +367,7 @@ BEATS.forEach((b, i) => { b.t1 = i < BEATS.length - 1 ? BEATS[i + 1].t0 : DUR; }
 function sIdx(t) { let r = 0; for (const s of SEN) if (t >= s.t0 + PRE - .12) r = s.i; return r; }
 
 export function renderFrame(f) {
-  const t = f / FPS; resetAll(); plateQ = []; ruleQ = null; HUD = null; heartBeat = 0;
+  const t = f / FPS; resetAll(); plateQ = []; ruleQ = null; HUD = null; heartBeat = 0; summary = -1;
   const b = BEATS.find(b => t >= b.t0 && t < b.t1) || BEATS[BEATS.length - 1];
   const lt = t - b.t0, k = clamp(lt / (b.t1 - b.t0)), s = sIdx(t);
   const cam = b.fn(t, lt, k, s);
@@ -392,7 +393,7 @@ export function renderFrame(f) {
   if (s >= 45 && s <= 47) { const p = 1 + .12 * Math.max(0, Math.sin(t * 9)); plate('❤ 140', W * .8, 300, { k: p, size: 70, bg: C2.red, fg: '#fff' }); }
   for (const [txt, x, y, ts] of plateQ) plate(txt, x, y, { k: ss(ts, ts + .4, t), size: txt.length > 22 ? 50 : 62 });
   if (ruleQ) ruleCard(ruleQ[0], ruleQ[1], ss(0, .45, ruleQ[2]));
-  if (summary >= 0) { plate('5 ПРАВИЛ', W * .62, 160, { k: 1, size: 70, bg: C2.red, fg: '#fff' }); RULES.forEach(([si, txt], i) => { if (t >= T0(si) - .1) plate(`${i + 1}. ${txt}`, W * .62, 280 + i * 118, { k: ss(T0(si) - .1, T0(si) + .3, t), size: 46, bg: '#fff' }); }); }
+  if (summary >= 0) { plate('5 ПРАВИЛ', W * .64, 215, { k: 1, size: 70, bg: C2.red, fg: '#fff' }); RULES.forEach(([si, txt], i) => { if (t >= T0(si) - .1) plate(`${i + 1}. ${txt}`, W * .64, 330 + i * 112, { k: ss(T0(si) - .1, T0(si) + .3, t), size: 46, bg: '#fff' }); }); }
   if (s >= 228 && s <= 228) plate('БОНУС', W / 2, 230, { k: ss(T0(228), T0(228) + .4, t), size: 90, bg: C2.yel, rot: -3 });
   captions(t);
   return frameOut();
