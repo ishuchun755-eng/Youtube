@@ -339,6 +339,7 @@ export function renderFrame(f) {
   camera.position.copy(cam.pos); camera.fov = VERT ? 2 * Math.atan(Math.tan(cam.fov * Math.PI / 360) * 1.75) * 180 / Math.PI : cam.fov; camera.lookAt(cam.look); camera.updateProjectionMatrix();
   draw(scene, { t: f });
   og.clearRect(0, 0, W, H);
+  if (QP.get('clean')) return frameOut();
   if (HUD) hud(HUD[0], HUD[1]);
   for (const [txt, x, y, ts, o] of plateQ) plate(txt, x, y, { size: txt.length > 22 ? 50 : 62, ...o, k: ss(ts, ts + .4, t) });
   if (ruleQ) ruleCard(ruleQ[0], ruleQ[1], ss(0, .45, ruleQ[2]));
@@ -348,5 +349,24 @@ export function renderFrame(f) {
   captions(t);
   return frameOut();
 }
-window.renderFrame = renderFrame;
+const tCandle = new THREE.Group(); at(cyl(.035, .035, .2, '#f4efe2', 12), 0, .1, 0, tCandle); const tFl = at(sph(.035, '#ffcf70', { glow: true, glowK: 3, cast: false, noEdge: true }), 0, .25, 0, tCandle); tFl.scale.set(1, 1.9, 1); tCandle.visible = false; scene.add(tCandle);
+function thumbFrame() {
+  const t = 3; resetAll(); look.vignette = .9;
+  S.setEnv('indoorDark', { hemi: .03 }); S.setFlatPower(false); S.aimSun(FX, 0, 0, 6, [2, 8, 6]); S.drawView(0, .05); setFrost(.6);
+  heroSofa(); hero.userData.setBeanie(true); hero.userData.setJacket(true); S.blanket.visible = true;
+  pose(hero, mixPose(SITHUG, { ...SITHUG, head: [-.12, 0, 0], torso: [.05, 0, 0], armL: [-.7, 0, -.3], elbowL: [-1.6, 0, 0], armR: [-.7, 0, .3], elbowR: [-1.6, 0, 0] }, 1)); face(hero, { brow: -1, raise: 1, mouth: .9, look: [0, 0] });
+  tCandle.visible = true; tCandle.position.set(FX - 1.75, .82, .12); tCandle.scale.setScalar(.75); S.lights.candle.color.set('#ffa64a'); candleAt(S.lights.candle, FX - 1.6, 1.15, .1, 1.3);
+  S.lights.candle2.color.set('#5f86d8'); candleAt(S.lights.candle2, FX - 1.2, 2.2, -2.4, .8);
+  camera.position.set(FX + .1, 1.5, -.2); camera.fov = 34; camera.lookAt(FX - 2.4, 1.15, .6); camera.updateProjectionMatrix();
+  draw(scene, { t: 90 }); og.clearRect(0, 0, W, H);
+  const big = (txt, x, y, sz, bg, fg, rot) => { og.save(); og.translate(x, y); og.rotate(rot * Math.PI / 180); og.font = `900 ${sz}px InterX`; const w = og.measureText(txt).width + sz * .6, h = sz * 1.2;
+    og.fillStyle = '#15121a'; og.fillRect(-w / 2 + 14, -h / 2 + 14, w, h); og.fillStyle = bg; og.fillRect(-w / 2, -h / 2, w, h); og.lineWidth = 10; og.strokeStyle = '#15121a'; og.strokeRect(-w / 2, -h / 2, w, h);
+    og.fillStyle = fg; og.textAlign = 'center'; og.textBaseline = 'middle'; og.fillText(txt, 0, sz * .05); og.restore(); };
+  big('7 KUN', 430, 290, 230, '#e8473a', '#ffffff', -4);
+  big('SVETSIZ', 470, 560, 170, '#ffd33d', '#15121a', 2);
+  big('−15°C', 330, 830, 120, '#7cc4ff', '#15121a', -3);
+  return frameOut(.95);
+}
+if (QP.get('thumb')) window.renderFrame = thumbFrame; else window.renderFrame = renderFrame;
+
 window.ready = true;
