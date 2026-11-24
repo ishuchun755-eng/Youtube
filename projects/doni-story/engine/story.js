@@ -401,7 +401,7 @@ export function renderFrame(f) {
   if (s >= 228 && s <= 228) plate('БОНУС', W / 2, 230, { k: ss(T0(228), T0(228) + .4, t), size: 90, bg: C2.yel, rot: -3 });
   captions(t);
   if (QP.get('hook')) { const a = +QP.get('a'), z = +QP.get('z');
-    const kh = ss(a, a + .35, t) * (1 - ss(a + 3.2, a + 3.6, t)); if (kh > 0) { QP.get('hook').split('|').forEach((l, i) => plate(l, W / 2, 230 + i * 120, { k: kh, size: 74, bg: i ? '#fff' : C2.yel, rot: i ? 1.5 : -2, abs: 1 })); }
+    const kh = ss(a - .5, a - .1, t) * (1 - ss(a + 3.2, a + 3.6, t)); if (kh > 0) { QP.get('hook').split('|').forEach((l, i) => plate(l, W / 2, 230 + i * 120, { k: kh, size: 74, bg: i ? '#fff' : C2.yel, rot: i ? 1.5 : -2, abs: 1 })); }
     const kc = ss(z - 3.5, z - 3.1, t); if (kc > 0) { plate('ПОЛНОЕ ВИДЕО', W / 2, 250, { k: kc, size: 70, bg: C2.red, fg: '#fff', rot: -2, abs: 1 }); plate('НА КАНАЛЕ ▶ Doni Story', W / 2, 370, { k: clamp(kc * 1.2 - .1), size: 56, bg: '#fff', rot: 1, abs: 1 }); } }
   return frameOut();
 }
