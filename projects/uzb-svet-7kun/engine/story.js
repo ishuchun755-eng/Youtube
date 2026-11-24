@@ -259,7 +259,7 @@ B(91, (t, lt, k, s) => { S.setEnv('dawn', { sun: 1.2, bg: '#9aa9c4' }); S.aimSun
   put(ona, YX - 1.0, 0, 1.6, 1.2); put(kampir, YX + .1, 0, 1.4, -1.6); pose(ona, POSES.talk); pose(kampir, POSES.worried); face(ona, { mouth: Math.abs(Math.sin(t * 9)) * .4, brow: -.5 }); face(kampir, { brow: -.8, mouth: .3 });
   ona.userData.setJacket(false);
   if (s >= 93) pq('«BIR OY KELMAS EKAN»', W * .3, 290, T0(93), { bg: '#c9ccd2', rot: -3 }); if (s >= 94) pq('«HAMMA JOYDA SHUNAQA EMISH»', W * .66, 420, T0(94), { bg: '#c9ccd2', rot: 2 });
-  if (s >= 95) pq("QO'RQUV TEZ TARQALADI", W / 2, 260, T0(95), { bg: C2.red, fg: '#fff' });
+  if (s >= 95) pq("QO'RQUV TEZ TARQALADI", W / 2, 580, T0(95), { bg: C2.red, fg: '#fff' });
   return { pos: V(YX - .4, 1.8, 4.6 - k), look: V(YX - .4, 1.4, 1.4), fov: 40 }; });
 // 96: battery radio
 B(96, (t, lt, k, s) => { S.setEnv('indoorDark', { hemi: .14 }); candleAt(S.lights.candle, SX, 1.15, 0, 1.4);
@@ -278,7 +278,7 @@ B(98, (t, lt, k, s) => { HUD = ['5-KUN · 03:00', '+2°C'];
   if (s >= 103) pq("QALTIRASH TO'XTASA — XAVF!", W * .64, 300, T0(103), { bg: C2.red, fg: '#fff', size: 50 }); if (s >= 104) pq('UYQU · BEFARQLIK', W * .66, 430, T0(104), { bg: '#fff' });
   return { pos: V(IX, 2.0, 5.2), look: V(IX, 1.3, 0), fov: 36 }; });
 // 105: elders & kids at risk; rule 2 — check on neighbours (thermos)
-B(105, (t, lt, k, s) => { S.setEnv('indoorDark', { hemi: .18 }); S.drawView(0, .03); setFrost(.95); candleAt(S.lights.candle, FX + 2.2, 1.4, 1.0, 1.3); S.flameA.visible = true;
+B(105, (t, lt, k, s) => { S.setEnv('indoorDark', { hemi: .18 }); S.drawView(0, .03); setFrost(.95); candleAt(S.lights.candle, FX + .6, 1.5, 1.6, 1.6); S.flameA.visible = true;
   S.fDoor.rotation.y = s >= 107 ? ss(T0(107), T0(107) + 1.2, t) * 1.3 : 0;
   put(kampir, FX + 1.8, 0, .9, -Math.PI / 2 + .5); pose(kampir, mixPose(POSES.hug, shiver(t), .6)); face(kampir, { brow: -.6, smile: s >= 108 ? .5 : 0 });
   if (s >= 107) { put(hero, FX + 3.1 - ss(T0(107) + .8, T0(107) + 2, t) * .6, 0, 1.2, -Math.PI / 2); hero.userData.setJacket(true); hero.userData.setBeanie(true); thermos.visible = true; pose(hero, { ...POSES.idle, armL: [-1.0, 0, .2], elbowL: [-.8, 0, 0] }); face(hero, { smile: .5 });
