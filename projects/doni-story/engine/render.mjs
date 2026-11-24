@@ -8,7 +8,7 @@ const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-un
 const pg = await b.newPage({ viewport: { width: +(process.env.W||1920), height: +(process.env.H||1080) } });
 pg.on('console', m => { if (m.type() === 'error') console.log('CONSOLE', m.text()); });
 pg.on('pageerror', e => console.log('PAGEERR', e.message));
-await pg.goto(`http://localhost:${port}/index.html?m=${process.env.M || 'story'}`); await pg.waitForFunction('window.ready', null, { timeout: 120000 });
+await pg.goto(`http://localhost:${port}/index.html?m=${process.env.M || 'story'}&${process.env.Q || ''}`); await pg.waitForFunction('window.ready', null, { timeout: 120000 });
 const err = await pg.evaluate('window.err'); if (err) { console.log('ERR', err); process.exit(1); }
 fs.mkdirSync(outDir, { recursive: true });
 let frames = [];

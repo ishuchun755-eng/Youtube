@@ -69,29 +69,33 @@ function breath(t, at, k = 1) { puffs.forEach((p, i) => { const ph = ((t * .5 + 
 
 // ---------- 2D overlay ----------
 const C2 = { ink: '#15121a', yel: '#ffd33d', red: '#e8473a', blue: '#2f7cf6', white: '#fffdf6' };
+const VERT = H > W, OY = VERT ? 340 : 0, QP = new URLSearchParams(location.search);
 function plate(text, x, y, o = {}) {
-  const sz = o.size || 64, k = o.k ?? 1; if (k <= 0) return; og.save(); og.translate(x, y); const sc = k < 1 ? ease(k) * (1.12 - .12 * k) : 1; og.scale(sc, sc); og.rotate((o.rot || 0) * Math.PI / 180);
+  let sz = o.size || 64; const k = o.k ?? 1; if (k <= 0) return;
+  if (VERT && !o.abs) { y += OY; og.save(); og.font = `900 ${sz}px InterX`; const ls = String(text).split('\n'); let w0 = Math.max(...ls.map(l => og.measureText(l).width)) + sz * .8; og.restore();
+    if (w0 > W - 60) { sz *= (W - 60) / w0; w0 = W - 60; } x = clamp(x, 30 + w0 / 2, W - 30 - w0 / 2); }
+  og.save(); og.translate(x, y); const sc = k < 1 ? ease(k) * (1.12 - .12 * k) : 1; og.scale(sc, sc); og.rotate((o.rot || 0) * Math.PI / 180);
   og.font = `900 ${sz}px InterX`; const lines = String(text).split('\n'); const w = Math.max(...lines.map(l => og.measureText(l).width)) + sz * .8, h = lines.length * sz * 1.1 + sz * .5;
   og.fillStyle = C2.ink; og.fillRect(-w / 2 + 10, -h / 2 + 10, w, h); og.fillStyle = o.bg || C2.yel; og.fillRect(-w / 2, -h / 2, w, h);
   og.lineWidth = 6; og.strokeStyle = C2.ink; og.strokeRect(-w / 2, -h / 2, w, h);
   og.fillStyle = o.fg || C2.ink; og.textAlign = 'center'; og.textBaseline = 'middle'; lines.forEach((l, i) => og.fillText(l, 0, (i - (lines.length - 1) / 2) * sz * 1.1 + sz * .05));
   og.restore(); }
 function ruleCard(n, text, k) { if (k <= 0) return; plate(`ПРАВИЛО №${n}`, W / 2, 230, { k, size: 54, bg: C2.red, fg: '#fff', rot: -2 }); plate(text, W / 2, 340, { k: clamp(k * 1.2 - .1), size: 62, rot: 1 }); }
-function hud(t, label, temp) { og.save(); og.font = '900 40px InterX'; const w = og.measureText(label).width + 40;
+function hud(t, label, temp) { og.save(); og.translate(0, OY * .55); og.font = '900 40px InterX'; const w = og.measureText(label).width + 40;
   og.fillStyle = C2.ink; og.fillRect(46, 46, w, 64); og.fillStyle = C2.white; og.fillRect(40, 40, w, 64); og.lineWidth = 5; og.strokeStyle = C2.ink; og.strokeRect(40, 40, w, 64);
   og.fillStyle = C2.ink; og.textBaseline = 'middle'; og.fillText(label, 60, 74);
   if (temp) { og.font = '900 40px InterX'; const tw = og.measureText(temp).width + 40; const x = 40 + w + 18; og.fillStyle = C2.ink; og.fillRect(x + 6, 46, tw, 64); og.fillStyle = '#7cc4ff'; og.fillRect(x, 40, tw, 64); og.strokeRect(x, 40, tw, 64); og.fillStyle = C2.ink; og.fillText(temp, x + 20, 74); }
   og.restore(); }
 function meters(fuel, bat) { // right-top bars
-  og.save(); const items = [['⛽', fuel, '#ffb347'], ['🔋', bat, '#7dd97a']]; items.forEach(([ic, v, col], i) => { if (v == null) return; const x = W - 200 + i * 90, y = 44;
+  og.save(); og.translate(0, OY * .55); const items = [['⛽', fuel, '#ffb347'], ['🔋', bat, '#7dd97a']]; items.forEach(([ic, v, col], i) => { if (v == null) return; const x = W - 200 + i * 90, y = 44;
     og.fillStyle = C2.ink; og.fillRect(x + 5, y + 5, 60, 170); og.fillStyle = C2.white; og.fillRect(x, y, 60, 170); og.lineWidth = 5; og.strokeStyle = C2.ink; og.strokeRect(x, y, 60, 170);
     og.fillStyle = v < .2 ? C2.red : col; og.fillRect(x + 8, y + 8 + 124 * (1 - v), 44, 124 * v); og.font = '32px sans-serif'; og.textAlign = 'center'; og.fillText(ic, x + 30, y + 160); });
   og.restore(); }
 function captions(t) { const s = sentAt(t); if (!s) return; const words = s.text.split(' '); const tot = s.text.length; const prog = clamp((t - (s.t0 + PRE)) / (s.t1 - s.t0));
-  og.save(); og.font = '900 54px InterX'; og.textBaseline = 'middle'; og.textAlign = 'left';
-  const lines = []; let cur = []; let cw2 = 0; for (const w of words) { const ww = og.measureText(w + ' ').width; if (cw2 + ww > W * .78 && cur.length) { lines.push(cur); cur = []; cw2 = 0; } cur.push(w); cw2 += ww; } if (cur.length) lines.push(cur);
-  let acc = 0; const y0 = H - 110 - (lines.length - 1) * 64;
-  lines.forEach((ln, li) => { const lw = og.measureText(ln.join(' ')).width; let x = W / 2 - lw / 2; const y = y0 + li * 64;
+  og.save(); const CS = VERT ? 66 : 54; og.font = `900 ${CS}px InterX`; og.textBaseline = 'middle'; og.textAlign = 'left';
+  const lines = []; let cur = []; let cw2 = 0; for (const w of words) { const ww = og.measureText(w + ' ').width; if (cw2 + ww > W * (VERT ? .88 : .78) && cur.length) { lines.push(cur); cur = []; cw2 = 0; } cur.push(w); cw2 += ww; } if (cur.length) lines.push(cur);
+  let acc = 0; const LH = CS * 1.18; const y0 = VERT ? H * .73 : H - 110 - (lines.length - 1) * 64;
+  lines.forEach((ln, li) => { const lw = og.measureText(ln.join(' ')).width; let x = W / 2 - lw / 2; const y = y0 + li * (VERT ? LH : 64);
     for (const w of ln) { const wk = (acc + w.length / 2) / tot; acc += w.length + 1; const on = prog >= wk - .06 && prog < wk + (w.length + 1) / tot + .04;
       og.lineWidth = 12; og.strokeStyle = C2.ink; og.lineJoin = 'round'; og.strokeText(w, x, y); og.fillStyle = on ? C2.yel : '#ffffff'; og.fillText(w, x, y); x += og.measureText(w + ' ').width; } });
   og.restore(); }
@@ -371,11 +375,11 @@ export function renderFrame(f) {
   const b = BEATS.find(b => t >= b.t0 && t < b.t1) || BEATS[BEATS.length - 1];
   const lt = t - b.t0, k = clamp(lt / (b.t1 - b.t0)), s = sIdx(t);
   const cam = b.fn(t, lt, k, s);
-  camera.position.copy(cam.pos); camera.fov = cam.fov; camera.lookAt(cam.look); camera.updateProjectionMatrix();
+  camera.position.copy(cam.pos); camera.fov = VERT ? 2 * Math.atan(Math.tan(cam.fov * Math.PI / 360) * 1.75) * 180 / Math.PI : cam.fov; camera.lookAt(cam.look); camera.updateProjectionMatrix();
   draw(scene, { t: f });
   // overlay
   og.clearRect(0, 0, W, H);
-  if (HUD) hud(t, HUD[0], HUD[1]);
+  if (HUD && !(QP.get('hook') && t < +QP.get('a') + 3.6)) hud(t, HUD[0], HUD[1]);
   if (s <= 7) { if (s >= 0) plate('−40°C', W * .2, 300, { k: ss(T0(0), T0(0) + .4, t), size: 110, bg: '#7cc4ff', rot: -4 }); if (s >= 6) plate('БЕНЗИН ½', W * .78, 300, { k: ss(T0(6), T0(6) + .4, t), size: 60 }); if (s >= 7) plate('40 КМ ДО ПОСЁЛКА', W / 2, 520, { k: ss(T0(7), T0(7) + .4, t), size: 64, bg: '#fff' }); }
   if (s >= 13 && s <= 14) plate('5 ПРАВИЛ, КОТОРЫЕ СПАСАЮТ ЖИЗНЬ', W / 2, 230, { k: ss(T0(13), T0(13) + .4, t), size: 58 });
   if (s >= 15 && s <= 16) titleCard(ss(T0(15), T0(15) + .5, t), 1);
@@ -396,6 +400,9 @@ export function renderFrame(f) {
   if (summary >= 0) { plate('5 ПРАВИЛ', W * .64, 215, { k: 1, size: 70, bg: C2.red, fg: '#fff' }); RULES.forEach(([si, txt], i) => { if (t >= T0(si) - .1) plate(`${i + 1}. ${txt}`, W * .64, 330 + i * 112, { k: ss(T0(si) - .1, T0(si) + .3, t), size: 46, bg: '#fff' }); }); }
   if (s >= 228 && s <= 228) plate('БОНУС', W / 2, 230, { k: ss(T0(228), T0(228) + .4, t), size: 90, bg: C2.yel, rot: -3 });
   captions(t);
+  if (QP.get('hook')) { const a = +QP.get('a'), z = +QP.get('z');
+    const kh = ss(a, a + .35, t) * (1 - ss(a + 3.2, a + 3.6, t)); if (kh > 0) { QP.get('hook').split('|').forEach((l, i) => plate(l, W / 2, 230 + i * 120, { k: kh, size: 74, bg: i ? '#fff' : C2.yel, rot: i ? 1.5 : -2, abs: 1 })); }
+    const kc = ss(z - 3.5, z - 3.1, t); if (kc > 0) { plate('ПОЛНОЕ ВИДЕО', W / 2, 250, { k: kc, size: 70, bg: C2.red, fg: '#fff', rot: -2, abs: 1 }); plate('НА КАНАЛЕ ▶ Doni Story', W / 2, 370, { k: clamp(kc * 1.2 - .1), size: 56, bg: '#fff', rot: 1, abs: 1 }); } }
   return frameOut();
 }
 window.renderFrame = renderFrame;
